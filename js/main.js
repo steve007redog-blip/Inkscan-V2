@@ -2,14 +2,17 @@ const fileSelect = document.getElementById("fileSelect"),
       fileElem = document.getElementById("fileElem");
 
 // ======================================================
-//  LOAD INK CODES FROM localStorage (from manage.htm)
+//  LOAD INK CODES FROM inkcodes.json (GitHub)
 // ======================================================
-function loadInkCodes() {
-    let stored = localStorage.getItem("inkCodes");
-    return stored ? JSON.parse(stored) : [];
-}
+let inkCodes = [];
 
-let inkCodes = loadInkCodes();
+fetch("js/inkcodes.json")
+    .then(response => response.json())
+    .then(data => {
+        inkCodes = data;
+        console.log("Ink codes loaded:", inkCodes);
+    })
+    .catch(err => console.error("Error loading inkcodes.json:", err));
 
 // ======================================================
 //  AUTOCOMPLETE LOGIC (C3-B)
@@ -47,7 +50,6 @@ $("#InkCodeInput").on("input", function () {
     const match = findUniqueMatch(typed);
 
     if (match) {
-        // Autocomplete only when exactly one match
         $(this).val(match);
     }
 });
