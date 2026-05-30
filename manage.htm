@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Ink Code Manager</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="stylesheet" href="css/bootstrap.min.css">
+<script src="js/jquery.min.js"></script>
+
+<style>
+body { padding: 20px; }
+#codeList li {
+    padding: 6px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Ink Code Manager</h2>
+<p>Add, edit, or delete ink codes. Changes save automatically.</p>
+
+<div class="input-group mb-3">
+    <input id="newCode" type="text" class="form-control" placeholder="Enter new ink code">
+    <button id="addBtn" class="btn btn-primary">Add</button>
+</div>
+
+<ul id="codeList"></ul>
+
+<script>
+// Load codes from localStorage
+function loadCodes() {
+    let stored = localStorage.getItem("inkCodes");
+    return stored ? JSON.parse(stored) : [];
+}
+
+// Save codes
+function saveCodes(codes) {
+    localStorage.setItem("inkCodes", JSON.stringify(codes));
+}
+
+// Render list
+function render() {
+    let codes = loadCodes();
+    let list = $("#codeList");
+    list.empty();
+
+    codes.forEach((code, index) => {
+        list.append(`
+            <li>
+                <span>${code}</span>
+                <div>
+                    <button class="btn btn-sm btn-warning editBtn" data-index="${index}">Edit</button>
+                    <button class="btn btn-sm btn-danger delBtn" data-index="${index}">Delete</button>
+                </div>
+            </li>
+        `);
+    });
+}
+
+// Add code
+$("#addBtn").click(() => {
+    let val = $("#newCode").val().trim();
+    if (val === "") return;
+
+    let codes = loadCodes();
+    codes.push(val);
+    saveCodes(codes);
+
+    $("#newCode").val("");
+    render();
+});
+
+// Delete code
+$(document).on("click", ".delBtn", function() {
+    let index = $(this).data("index");
+    let codes = loadCodes();
+    codes.splice(index, 1);
+    saveCodes(codes);
+    render();
+});
+
+// Edit code
+$(document).on("click", ".editBtn", function() {
+    let index = $(this).data("index");
+    let codes = loadCodes();
+    let updated = prompt("Edit ink code:", codes[index]);
+    if (updated !== null && updated.trim() !== "") {
+        codes[index] = updated.trim();
+        saveCodes(codes);
+        render();
+    }
+});
+
+// Initial render
+render();
+</script>
+
+</body>
+</html>
