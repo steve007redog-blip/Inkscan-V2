@@ -22,7 +22,7 @@ body { padding: 20px; }
 <body>
 
 <h2>Ink Code Manager</h2>
-<p>Add, edit, or delete ink codes. Changes save automatically.</p>
+<p>Add, edit, or delete ink codes. When finished, click Export to download inkcodes.json.</p>
 
 <div class="input-group mb-3">
     <input id="newCode" type="text" class="form-control" placeholder="Enter new ink code">
@@ -30,6 +30,8 @@ body { padding: 20px; }
 </div>
 
 <ul id="codeList"></ul>
+
+<button id="exportBtn" class="btn btn-success mt-3">Export inkcodes.json</button>
 
 <script>
 // Load codes from localStorage
@@ -96,7 +98,17 @@ $(document).on("click", ".editBtn", function() {
     }
 });
 
-// Initial render
+// Export JSON
+$("#exportBtn").click(() => {
+    let codes = loadCodes();
+    let blob = new Blob([JSON.stringify(codes, null, 2)], { type: "application/json" });
+
+    let link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "inkcodes.json";
+    link.click();
+});
+
 render();
 </script>
 
