@@ -65,13 +65,16 @@ if (navigator.serviceWorker.controller) {
                         </div>
                     </div>
 
-                    <!-- NEW AUTOCOMPLETE INK CODE FIELD -->
+                    <!-- AUTOCOMPLETE INK CODE FIELD -->
                     <div class="row">
                         <div class="col-25">
                             <label for="InkCodeInput">Ink Code</label>
                         </div>
                         <div class="col-75">
                             <input type="text" class="form-control input-lg" id="InkCodeInput" autocomplete="off" placeholder="Start typing ink code">
+
+                            <!-- ⭐ REQUIRED AUTOCOMPLETE LIST CONTAINER ⭐ -->
+                            <div id="autocomplete-list" class="autocomplete-items"></div>
                         </div>
                     </div>
 
