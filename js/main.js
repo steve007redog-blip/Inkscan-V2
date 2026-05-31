@@ -15,7 +15,7 @@ window.addEventListener("load", () => {
 // Load ink codes from inkcodes.json
 // ===============================
 let inkCodes = [];
-const inkInput = document.getElementById("inkCodeInput");
+const inkInput = document.getElementById("InkCodeInput");
 
 fetch("js/inkcodes.json")
     .then(response => response.json())
@@ -45,6 +45,14 @@ function setupAutocomplete() {
             code.toLowerCase().includes(value)
         );
 
+        // ⭐ AUTO‑SELECT WHEN EXACTLY ONE MATCH
+        if (matches.length === 1) {
+            lockInkFieldAfterSelect(matches[0]);
+            list.innerHTML = "";
+            return;
+        }
+
+        // Otherwise show dropdown list
         matches.forEach(match => {
             const item = document.createElement("div");
             item.className = "autocomplete-item";
