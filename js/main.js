@@ -1,4 +1,17 @@
 // ===============================
+// Auto‑fill today's date (NZ format)
+// ===============================
+window.addEventListener("load", () => {
+    const dateField = document.getElementById("dateInput");
+    if (!dateField) return;
+
+    const today = new Date();
+    const formatted = today.toLocaleDateString("en-NZ");
+    dateField.value = formatted;
+});
+
+
+// ===============================
 // Load ink codes from inkcodes.json
 // ===============================
 let inkCodes = [];
@@ -17,17 +30,16 @@ fetch("js/inkcodes.json")
 // Autocomplete Setup
 // ===============================
 function setupAutocomplete() {
-    const autocompleteList = document.getElementById("autocomplete-list");
+    const list = document.getElementById("autocomplete-list");
 
     inkInput.addEventListener("input", function () {
-        const value = this.value.trim().toLowerCase();
-
         // If field is locked, ignore typing
         if (inkInput.readOnly) return;
 
-        autocompleteList.innerHTML = "";
+        const value = this.value.trim().toLowerCase();
+        list.innerHTML = "";
 
-        if (value === "") return;
+        if (!value) return;
 
         const matches = inkCodes.filter(code =>
             code.toLowerCase().includes(value)
@@ -35,23 +47,22 @@ function setupAutocomplete() {
 
         matches.forEach(match => {
             const item = document.createElement("div");
-            item.classList.add("autocomplete-item");
+            item.className = "autocomplete-item";
             item.textContent = match;
 
-            item.addEventListener("click", () => {
+            // Use mousedown so blur doesn't fire first
+            item.addEventListener("mousedown", () => {
                 lockInkFieldAfterSelect(match);
-                autocompleteList.innerHTML = "";
+                list.innerHTML = "";
             });
 
-            autocompleteList.appendChild(item);
+            list.appendChild(item);
         });
     });
 
     // Close list when clicking outside
-    document.addEventListener("click", function (e) {
-        if (e.target !== inkInput) {
-            autocompleteList.innerHTML = "";
-        }
+    document.addEventListener("click", (e) => {
+        if (e.target !== inkInput) list.innerHTML = "";
     });
 }
 
