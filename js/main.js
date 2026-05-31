@@ -1,6 +1,6 @@
-// ===============================
-// Auto‑fill today's date (NZ format)
-// ===============================
+// ======================================================
+//  AUTO‑FILL TODAY'S DATE (NZ FORMAT)
+// ======================================================
 window.addEventListener("load", () => {
     const dateField = document.getElementById("dateInput");
     if (!dateField) return;
@@ -11,9 +11,9 @@ window.addEventListener("load", () => {
 });
 
 
-// ===============================
-// Load ink codes from inkcodes.json
-// ===============================
+// ======================================================
+//  LOAD INK CODES FROM inkcodes.json
+// ======================================================
 let inkCodes = [];
 const inkInput = document.getElementById("InkCodeInput");
 
@@ -26,14 +26,13 @@ fetch("js/inkcodes.json")
     .catch(err => console.error("Error loading ink codes:", err));
 
 
-// ===============================
-// Autocomplete Setup
-// ===============================
+// ======================================================
+//  AUTOCOMPLETE SETUP
+// ======================================================
 function setupAutocomplete() {
     const list = document.getElementById("autocomplete-list");
 
     inkInput.addEventListener("input", function () {
-        // If field is locked, ignore typing
         if (inkInput.readOnly) return;
 
         const value = this.value.trim().toLowerCase();
@@ -45,20 +44,19 @@ function setupAutocomplete() {
             code.toLowerCase().includes(value)
         );
 
-        // ⭐ AUTO‑SELECT WHEN EXACTLY ONE MATCH
+        // Auto‑select when exactly one match
         if (matches.length === 1) {
             lockInkFieldAfterSelect(matches[0]);
             list.innerHTML = "";
             return;
         }
 
-        // Otherwise show dropdown list
+        // Show dropdown list
         matches.forEach(match => {
             const item = document.createElement("div");
             item.className = "autocomplete-item";
             item.textContent = match;
 
-            // Use mousedown so blur doesn't fire first
             item.addEventListener("mousedown", () => {
                 lockInkFieldAfterSelect(match);
                 list.innerHTML = "";
@@ -68,25 +66,24 @@ function setupAutocomplete() {
         });
     });
 
-    // Close list when clicking outside
     document.addEventListener("click", (e) => {
         if (e.target !== inkInput) list.innerHTML = "";
     });
 }
 
 
-// ===============================
-// Lock field after selecting a valid code
-// ===============================
+// ======================================================
+//  LOCK INK FIELD AFTER SELECTION
+// ======================================================
 function lockInkFieldAfterSelect(selectedValue) {
     inkInput.value = selectedValue;
-    inkInput.readOnly = true;   // prevent typing after selection
+    inkInput.readOnly = true;
 }
 
 
-// ===============================
-// Unlock typing when field is cleared
-// ===============================
+// ======================================================
+//  UNLOCK WHEN CLEARED
+// ======================================================
 inkInput.addEventListener("input", () => {
     if (inkInput.value === "") {
         inkInput.readOnly = false;
@@ -94,9 +91,9 @@ inkInput.addEventListener("input", () => {
 });
 
 
-// ===============================
-// Validate on blur (safety net)
-// ===============================
+// ======================================================
+//  VALIDATE ON BLUR
+// ======================================================
 inkInput.addEventListener("blur", () => {
     const value = inkInput.value.trim();
 
@@ -113,3 +110,127 @@ inkInput.addEventListener("blur", () => {
         inkInput.readOnly = false;
     }
 });
+
+
+// ======================================================
+//  FIELD NAVIGATION + ADD ROW LOGIC
+// ======================================================
+
+// Ink Code → Batch Code
+$("#InkCodeInput").on("keydown", function (e) {
+    if (e.key === "Enter" || e.key === "Tab") {
+        e.preventDefault();
+        $("#BatchCode").focus();
+    }
+});
+
+// Batch Code → Weight
+$("#BatchCode").on("keydown", function (e) {
+    if (e.key === "Enter" || e.key === "Tab") {
+        e.preventDefault();
+        $("#Weight").focus();
+    }
+});
+
+// Weight → Add Row
+$("#Weight").on("keydown", function (e) {
+    if (e.key === "Enter" || e.key === "Tab") {
+        e.preventDefault();
+
+        const inkCode = $("#InkCodeInput").val().trim();
+        const batch = $("#BatchCode").val().trim();
+        const weight = $("#Weight").val().trim();
+
+        if (inkCode !== "" && weight !== "") {
+
+            addRow(
+                "scansBody",
+                $("#dateInput").val(),
+                $("#JobNo").val(),
+                inkCode,
+                batch,
+                weight
+            );
+
+            // Reset fields
+            $("#InkCodeInput").val("").prop("readonly", false);
+            $("#BatchCode").val("");
+            $("#Weight").val("");
+
+            $("#InkCodeInput").focus();
+        }
+    }
+});
+
+
+// ======================================================
+//  SAVE TO CSV WITH GROUPED TOTALS
+// ======================================================
+$("#btn-save").click(function () {
+    var rows = $("#scansBody tr");
+    var totals = {};
+
+    rows.each(function () {
+        var cols = $(this).find("td");
+
+        var date = $(cols[0]).text();
+        var job = $(cols[1]).text();
+        var ink = $(cols[2]).text();
+        var batch = $(cols[3]).text().trim();
+        var weight = parseFloat($(cols[4]).text());
+
+        if (!totals[ink]) {
+            totals[ink] = {
+                date: date,
+                job: job,
+                weight: 0,
+                batches: new Set()
+            };
+        }
+
+        totals[ink].weight += weight;
+
+        if (batch !== "") {
+            totals[ink].batches.add(batch);
+        }
+    });
+
+    var csv = "Date,Job Number,Ink Code,Total Weight,Batch Codes Used\n";
+
+    for (var ink in totals) {
+        let batchList = Array.from(totals[ink].batches).join(", ");
+        csv += `${totals[ink].date},${totals[ink].job},${ink},${totals[ink].weight},"${batchList}"\n`;
+    }
+
+    var jobNo = $("#JobNo").val();
+    var blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    saveAs(blob, jobNo + ".csv");
+});
+
+
+// ======================================================
+//  TABLE + FILE FUNCTIONS
+// ======================================================
+function loadCsvFile() {
+    var clear = confirm("Loading a file will clear the current table. Continue?");
+    if (clear) {
+        ClearTable();
+        if (fileElem) fileElem.click();
+    }
+}
+
+function addRow(tBodyID, rDate, rJobNo, rInkCode, rBatchCode, rWeight) {
+    var body = document.getElementById(tBodyID);
+    var row = body.insertRow(0);
+    row.insertCell(0).innerHTML = rDate;
+    row.insertCell(1).innerHTML = rJobNo;
+    row.insertCell(2).innerHTML = rInkCode;
+    row.insertCell(3).innerHTML = rBatchCode;
+    row.insertCell(4).innerHTML = rWeight;
+}
+
+function ClearTable() {
+    document.getElementById("scansBody").innerHTML = "";
+}
+
+$("#btn-clear").click(ClearTable);
