@@ -27,7 +27,7 @@ fetch("js/inkcodes.json")
 
 
 // ======================================================
-//  AUTOCOMPLETE SETUP
+//  AUTOCOMPLETE SETUP (CLEAN + FIXED)
 // ======================================================
 function setupAutocomplete() {
     const list = document.getElementById("autocomplete-list");
@@ -40,11 +40,12 @@ function setupAutocomplete() {
 
         if (!value) return;
 
+        // Filter only codes that START with the typed value
         const matches = inkCodes.filter(code =>
-            code.toLowerCase().includes(value)
+            code.toLowerCase().startsWith(value)
         );
 
-        // Auto‑select when exactly one match
+        // Auto‑select only when EXACTLY one match
         if (matches.length === 1) {
             lockInkFieldAfterSelect(matches[0]);
             list.innerHTML = "";
@@ -66,6 +67,7 @@ function setupAutocomplete() {
         });
     });
 
+    // Close list when clicking outside
     document.addEventListener("click", (e) => {
         if (e.target !== inkInput) list.innerHTML = "";
     });
