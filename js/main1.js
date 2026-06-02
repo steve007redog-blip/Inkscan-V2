@@ -237,17 +237,15 @@ function handleFiles(files) {
             if (!line) continue;
             
             // Parse CSV line (handle quoted fields)
-            const matches = line.match(/("([^"]*)"|[^,]*)/g);
-            const cols = matches.map(col => col.replace(/^"|"$/g, '').trim());
+            const cols = parseCSVLine(line);
             
             if (cols.length >= 5) {
                 addRow(
                     "scansBody",
-                    cols[0], // date
-                    cols[1], // job number
-                    cols[2], // ink code
-                    cols[3], // batch code
-                    cols[4]  // weight
+                    cols[0].trim(), // date
+                    cols[1].trim(), // job number
+                    cols[2].trim(), // ink code
+                    cols[4].trim()  // batch codes used
                 );
             }
         }
@@ -259,6 +257,34 @@ function handleFiles(files) {
     document.getElementById("fileElem").value = "";
 }
 
+function parseCSVLine(line) {
+    const result = [];
+    let current = "";
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const nextChar = line[i + 1];
+        
+        if (char === '"') {
+            if (inQuotes && nextChar === '"') {
+                current += '"';
+                i++;
+            } else {
+                inQuotes = !inQuotes;
+            }
+        } else if (char === ',' && !inQuotes) {
+            result.push(current);
+            current = "";
+        } else {
+            current += char;
+        }
+    }
+    
+    result.push(current);
+    return result;
+}
+
 function addRow(tBodyID, rDate, rJobNo, rInkCode, rBatchCode, rWeight) {
     var body = document.getElementById(tBodyID);
     var row = body.insertRow(0);
@@ -266,7 +292,7 @@ function addRow(tBodyID, rDate, rJobNo, rInkCode, rBatchCode, rWeight) {
     row.insertCell(1).innerHTML = rJobNo;
     row.insertCell(2).innerHTML = rInkCode;
     row.insertCell(3).innerHTML = rBatchCode;
-    row.insertCell(4).innerHTML = rWeight;
+    row.insertCell(4).innerHTML = rWeight || ""; // Weight defaults to empty for loaded files
 }
 
 function ClearTable() {
