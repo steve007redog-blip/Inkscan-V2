@@ -221,6 +221,44 @@ function loadCsvFile() {
     }
 }
 
+function handleFiles(files) {
+    if (files.length === 0) return;
+    
+    const file = files[0];
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+        const csv = e.target.result;
+        const lines = csv.trim().split('\n');
+        
+        // Skip header row
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+            
+            // Parse CSV line (handle quoted fields)
+            const matches = line.match(/("([^"]*)"|[^,]*)/g);
+            const cols = matches.map(col => col.replace(/^"|"$/g, '').trim());
+            
+            if (cols.length >= 5) {
+                addRow(
+                    "scansBody",
+                    cols[0], // date
+                    cols[1], // job number
+                    cols[2], // ink code
+                    cols[3], // batch code
+                    cols[4]  // weight
+                );
+            }
+        }
+    };
+    
+    reader.readAsText(file);
+    
+    // Reset file input
+    document.getElementById("fileElem").value = "";
+}
+
 function addRow(tBodyID, rDate, rJobNo, rInkCode, rBatchCode, rWeight) {
     var body = document.getElementById(tBodyID);
     var row = body.insertRow(0);
