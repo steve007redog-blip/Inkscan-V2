@@ -416,11 +416,16 @@ function handleFiles(files) {
             console.error("Error loading CSV:", error);
             alert("Error loading CSV file: " + error.message);
         }
+        
+        // IMPORTANT: Clear the file input after loading to prevent accidental double-loads
+        document.getElementById("fileElem").value = "";
     };
     
     reader.onerror = function() {
         console.error("FileReader error");
         alert("Error reading file");
+        // Clear file input on error too
+        document.getElementById("fileElem").value = "";
     };
     
     reader.readAsText(file);
