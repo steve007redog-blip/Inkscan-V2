@@ -349,23 +349,33 @@ function hideCompletionBanner() {
 function loadCsvFile() {
     var clear = confirm("Loading a file will clear the current table. Continue?");
     if (clear) {
+        // First clear the table
         ClearTable();
-        // Ensure fileElem is available
+        
+        // Then trigger file picker after a brief delay to ensure DOM is ready
         setTimeout(() => {
             const fileElem = document.getElementById("fileElem");
             if (fileElem) {
+                console.log("Clicking file input...");
                 fileElem.click();
             } else {
-                alert("Error: File input element not found");
+                console.error("File input element not found");
+                alert("Error: Could not open file picker. Try again.");
             }
-        }, 100);
+        }, 50);
     }
 }
 
 function handleFiles(files) {
-    if (files.length === 0) return;
+    console.log("handleFiles called with", files.length, "files");
+    
+    if (files.length === 0) {
+        console.log("No files selected");
+        return;
+    }
     
     const file = files[0];
+    console.log("Processing file:", file.name);
     const reader = new FileReader();
     
     reader.onload = function(e) {
@@ -373,18 +383,23 @@ function handleFiles(files) {
             const csv = e.target.result;
             const lines = csv.trim().split('\n');
             
+            console.log("CSV has", lines.length, "lines");
+            
             if (lines.length < 2) {
                 alert("CSV file is empty or invalid.");
                 return;
             }
             
             // Skip header row
+            let rowsAdded = 0;
             for (let i = 1; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (!line) continue;
                 
                 // Parse CSV line (handle quoted fields)
                 const cols = parseCSVLine(line);
+                
+                console.log("Row", i, "parsed columns:", cols);
                 
                 // Ensure we have at least 5 columns
                 if (cols.length >= 5) {
@@ -396,11 +411,15 @@ function handleFiles(files) {
                         cols[3].trim(),  // batch code
                         cols[4].trim()   // weight
                     );
+                    rowsAdded++;
                 }
             }
             
-            if (lines.length < 2) {
-                alert("No data rows found in CSV file.");
+            console.log("Loaded", rowsAdded, "rows from CSV");
+            if (rowsAdded > 0) {
+                alert("Successfully loaded " + rowsAdded + " entries from CSV!");
+            } else {
+                alert("No valid data rows found in CSV file.");
             }
         } catch (error) {
             console.error("Error loading CSV:", error);
@@ -409,16 +428,19 @@ function handleFiles(files) {
     };
     
     reader.onerror = function() {
+        console.error("FileReader error");
         alert("Error reading file");
     };
     
     reader.readAsText(file);
     
-    // Reset file input
-    const fileElem = document.getElementById("fileElem");
-    if (fileElem) {
-        fileElem.value = "";
-    }
+    // Reset file input so same file can be selected again
+    setTimeout(() => {
+        const fileElem = document.getElementById("fileElem");
+        if (fileElem) {
+            fileElem.value = "";
+        }
+    }, 100);
 }
 
 function parseCSVLine(line) {
@@ -472,6 +494,7 @@ function addRow(tBodyID, rDate, rJobNo, rInkCode, rBatchCode, rWeight) {
 }
 
 function ClearTable() {
+    console.log("Clearing table");
     document.getElementById("scansBody").innerHTML = "";
     isJobCompleted = false;
     enableForm();
