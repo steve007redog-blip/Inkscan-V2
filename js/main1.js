@@ -1,4 +1,9 @@
 // ======================================================
+//  GLOBAL STATE FOR JOB COMPLETION
+// ======================================================
+let isJobCompleted = false;
+
+// ======================================================
 //  AUTO‑FILL TODAY'S DATE (NZ FORMAT)
 // ======================================================
 window.addEventListener("load", () => {
@@ -16,6 +21,7 @@ window.addEventListener("load", () => {
 // ======================================================
 let inkCodes = [];
 const inkInput = document.getElementById("InkCodeInput");
+const editInkBtn = document.getElementById("editInkBtn");
 
 fetch("js/inkcodes.json")
     .then(response => response.json())
@@ -80,7 +86,19 @@ function setupAutocomplete() {
 function lockInkFieldAfterSelect(selectedValue) {
     inkInput.value = selectedValue;
     inkInput.readOnly = true;
+    editInkBtn.style.display = "block"; // Show edit button
 }
+
+
+// ======================================================
+//  UNLOCK/EDIT INK FIELD
+// ======================================================
+editInkBtn.addEventListener("click", function () {
+    inkInput.readOnly = false;
+    inkInput.value = "";
+    editInkBtn.style.display = "none";
+    inkInput.focus();
+});
 
 
 // ======================================================
@@ -89,6 +107,7 @@ function lockInkFieldAfterSelect(selectedValue) {
 inkInput.addEventListener("input", () => {
     if (inkInput.value === "") {
         inkInput.readOnly = false;
+        editInkBtn.style.display = "none";
     }
 });
 
@@ -101,6 +120,7 @@ inkInput.addEventListener("blur", () => {
 
     if (value === "") {
         inkInput.readOnly = false;
+        editInkBtn.style.display = "none";
         return;
     }
 
@@ -110,6 +130,7 @@ inkInput.addEventListener("blur", () => {
         alert("Invalid ink code. Please select from the list.");
         inkInput.value = "";
         inkInput.readOnly = false;
+        editInkBtn.style.display = "none";
     }
 });
 
@@ -156,6 +177,7 @@ $("#Weight").on("keydown", function (e) {
 
             // Reset fields
             $("#InkCodeInput").val("").prop("readonly", false);
+            editInkBtn.style.display = "none";
             $("#BatchCode").val("");
             $("#Weight").val("");
 
@@ -166,10 +188,63 @@ $("#Weight").on("keydown", function (e) {
 
 
 // ======================================================
-//  SAVE TO CSV WITH GROUPED TOTALS
+//  SAVE & CONTINUE (INDIVIDUAL ENTRIES CSV)
 // ======================================================
-$("#btn-save").click(function () {
+$("#btn-save-continue").click(function () {
+    if (isJobCompleted) {
+        alert("Job is completed. Clear the form or start a new job.");
+        return;
+    }
+
     var rows = $("#scansBody tr");
+
+    if (rows.length === 0) {
+        alert("No entries to save. Add some ink records first.");
+        return;
+    }
+
+    var csv = "Date,Job Number,Ink Code,Batch Code,Weight\n";
+
+    rows.each(function () {
+        var cols = $(this).find("td");
+
+        var date = $(cols[0]).text();
+        var job = $(cols[1]).text();
+        var ink = $(cols[2]).text();
+        var batch = $(cols[3]).text().trim();
+        var weight = $(cols[4]).text();
+
+        csv += `${date},${job},${ink},"${batch}",${weight}\n`;
+    });
+
+    var jobNo = $("#JobNo").val();
+    var blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    saveAs(blob, jobNo + "_entries.csv");
+
+    alert("Saved! You can continue adding more entries or load this CSV later.");
+});
+
+
+// ======================================================
+//  COMPLETE/FINISH JOB (TOTALS ONLY)
+// ======================================================
+$("#btn-complete-job").click(function () {
+    if (isJobCompleted) {
+        alert("Job is already completed.");
+        return;
+    }
+
+    var rows = $("#scansBody tr");
+
+    if (rows.length === 0) {
+        alert("No entries to export. Add some ink records first.");
+        return;
+    }
+
+    // Ask for confirmation
+    var confirm = window.confirm("Complete job and export totals only? This will lock the form for new entries.");
+    if (!confirm) return;
+
     var totals = {};
 
     rows.each(function () {
@@ -206,8 +281,66 @@ $("#btn-save").click(function () {
 
     var jobNo = $("#JobNo").val();
     var blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    saveAs(blob, jobNo + ".csv");
+    saveAs(blob, jobNo + "_totals.csv");
+
+    // Lock the form and disable inputs
+    isJobCompleted = true;
+    disableForm();
+    showCompletionBanner();
+
+    alert("Job completed! Totals exported. Form is now locked.");
 });
+
+
+// ======================================================
+//  DISABLE FORM AFTER JOB COMPLETION
+// ======================================================
+function disableForm() {
+    $("#dateInput").prop("disabled", true);
+    $("#JobNo").prop("disabled", true);
+    $("#InkCodeInput").prop("disabled", true);
+    $("#BatchCode").prop("disabled", true);
+    $("#Weight").prop("disabled", true);
+    $("#btn-save-continue").prop("disabled", true);
+    $("#btn-complete-job").prop("disabled", true);
+    $("#fileSelect").prop("disabled", true);
+    editInkBtn.prop("disabled", true);
+}
+
+
+// ======================================================
+//  ENABLE FORM FOR NEW JOB
+// ======================================================
+function enableForm() {
+    $("#dateInput").prop("disabled", false);
+    $("#JobNo").prop("disabled", false);
+    $("#InkCodeInput").prop("disabled", false);
+    $("#BatchCode").prop("disabled", false);
+    $("#Weight").prop("disabled", false);
+    $("#btn-save-continue").prop("disabled", false);
+    $("#btn-complete-job").prop("disabled", false);
+    $("#fileSelect").prop("disabled", false);
+    editInkBtn.prop("disabled", false);
+    editInkBtn.style.display = "none";
+}
+
+
+// ======================================================
+//  SHOW COMPLETION BANNER
+// ======================================================
+function showCompletionBanner() {
+    const banner = document.getElementById("jobCompletedBanner");
+    banner.classList.add("show");
+}
+
+
+// ======================================================
+//  HIDE COMPLETION BANNER
+// ======================================================
+function hideCompletionBanner() {
+    const banner = document.getElementById("jobCompletedBanner");
+    banner.classList.remove("show");
+}
 
 
 // ======================================================
@@ -242,10 +375,11 @@ function handleFiles(files) {
             if (cols.length >= 5) {
                 addRow(
                     "scansBody",
-                    cols[0].trim(), // date
-                    cols[1].trim(), // job number
-                    cols[2].trim(), // ink code
-                    cols[4].trim()  // batch codes used
+                    cols[0].trim(),  // date
+                    cols[1].trim(),  // job number
+                    cols[2].trim(),  // ink code
+                    cols[3].trim(),  // batch code
+                    cols[4].trim()   // weight
                 );
             }
         }
@@ -292,11 +426,24 @@ function addRow(tBodyID, rDate, rJobNo, rInkCode, rBatchCode, rWeight) {
     row.insertCell(1).innerHTML = rJobNo;
     row.insertCell(2).innerHTML = rInkCode;
     row.insertCell(3).innerHTML = rBatchCode;
-    row.insertCell(4).innerHTML = rWeight || ""; // Weight defaults to empty for loaded files
+    row.insertCell(4).innerHTML = rWeight || "";
 }
 
 function ClearTable() {
     document.getElementById("scansBody").innerHTML = "";
+    isJobCompleted = false;
+    enableForm();
+    hideCompletionBanner();
+    
+    // Reset form fields
+    const today = new Date();
+    const formatted = today.toLocaleDateString("en-NZ");
+    $("#dateInput").val(formatted);
+    $("#JobNo").val("");
+    $("#InkCodeInput").val("").prop("readonly", false);
+    $("#BatchCode").val("");
+    $("#Weight").val("");
+    editInkBtn.style.display = "none";
 }
 
 $("#btn-clear").click(ClearTable);
