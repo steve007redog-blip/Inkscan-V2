@@ -304,7 +304,7 @@ function disableForm() {
     $("#btn-save-continue").prop("disabled", true);
     $("#btn-complete-job").prop("disabled", true);
     $("#fileSelect").prop("disabled", true);
-    editInkBtn.prop("disabled", true);
+    $(editInkBtn).prop("disabled", true);
 }
 
 
@@ -320,7 +320,7 @@ function enableForm() {
     $("#btn-save-continue").prop("disabled", false);
     $("#btn-complete-job").prop("disabled", false);
     $("#fileSelect").prop("disabled", false);
-    editInkBtn.prop("disabled", false);
+    $(editInkBtn).prop("disabled", false);
     editInkBtn.style.display = "none";
 }
 
@@ -347,22 +347,13 @@ function hideCompletionBanner() {
 //  TABLE + FILE FUNCTIONS
 // ======================================================
 function loadCsvFile() {
+    console.log("loadCsvFile called");
     var clear = confirm("Loading a file will clear the current table. Continue?");
     if (clear) {
-        // First clear the table
+        console.log("User confirmed, clearing table");
         ClearTable();
-        
-        // Then trigger file picker after a brief delay to ensure DOM is ready
-        setTimeout(() => {
-            const fileElem = document.getElementById("fileElem");
-            if (fileElem) {
-                console.log("Clicking file input...");
-                fileElem.click();
-            } else {
-                console.error("File input element not found");
-                alert("Error: Could not open file picker. Try again.");
-            }
-        }, 50);
+        console.log("Triggering file input click");
+        document.getElementById("fileElem").click();
     }
 }
 
@@ -433,14 +424,6 @@ function handleFiles(files) {
     };
     
     reader.readAsText(file);
-    
-    // Reset file input so same file can be selected again
-    setTimeout(() => {
-        const fileElem = document.getElementById("fileElem");
-        if (fileElem) {
-            fileElem.value = "";
-        }
-    }, 100);
 }
 
 function parseCSVLine(line) {
@@ -511,4 +494,12 @@ function ClearTable() {
     editInkBtn.style.display = "none";
 }
 
+// Set up button event listeners using jQuery
+$("#fileSelect").click(loadCsvFile);
 $("#btn-clear").click(ClearTable);
+
+// Handle file selection when user chooses a file
+$("#fileElem").change(function() {
+    console.log("File input changed");
+    handleFiles(this.files);
+});
