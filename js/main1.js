@@ -1,18 +1,17 @@
 /* ======================================================
-   GLOBAL STATE FOR JOB COMPLETION
+   GLOBAL STATE
 ====================================================== */
 let isJobCompleted = false;
 
 /* ======================================================
-   AUTO‑FILL TODAY'S DATE (NZ FORMAT)
+   AUTO-FILL TODAY'S DATE (NZ FORMAT)
 ====================================================== */
 window.addEventListener("load", () => {
     const dateField = document.getElementById("dateInput");
     if (!dateField) return;
 
     const today = new Date();
-    const formatted = today.toLocaleDateString("en-NZ");
-    dateField.value = formatted;
+    dateField.value = today.toLocaleDateString("en-NZ");
 });
 
 /* ======================================================
@@ -83,7 +82,7 @@ function lockInkFieldAfterSelect(selectedValue) {
 }
 
 /* ======================================================
-   UNLOCK/EDIT INK FIELD
+   UNLOCK INK FIELD
 ====================================================== */
 editInkBtn.addEventListener("click", function () {
     inkInput.readOnly = false;
@@ -207,7 +206,7 @@ $("#btn-save-continue").click(function () {
 });
 
 /* ======================================================
-   COMPLETE/FINISH JOB (TOTALS ONLY)
+   COMPLETE JOB (TOTALS ONLY)
 ====================================================== */
 $("#btn-complete-job").click(function () {
     if (isJobCompleted) {
@@ -222,8 +221,8 @@ $("#btn-complete-job").click(function () {
         return;
     }
 
-    var confirm = window.confirm("Complete job and export totals only? This will lock the form for new entries.");
-    if (!confirm) return;
+    var confirmFinish = window.confirm("Complete job and export totals only? This will lock the form for new entries.");
+    if (!confirmFinish) return;
 
     var totals = {};
 
@@ -271,7 +270,7 @@ $("#btn-complete-job").click(function () {
 });
 
 /* ======================================================
-   DISABLE FORM AFTER JOB COMPLETION
+   DISABLE FORM
 ====================================================== */
 function disableForm() {
     document.querySelectorAll("input, button").forEach(el => {
@@ -280,7 +279,7 @@ function disableForm() {
 }
 
 /* ======================================================
-   ENABLE FORM (USED WHEN CLEARING)
+   ENABLE FORM
 ====================================================== */
 function enableForm() {
     document.querySelectorAll("input, button").forEach(el => {
@@ -292,7 +291,7 @@ function enableForm() {
    SHOW COMPLETION BANNER
 ====================================================== */
 function showCompletionBanner() {
-    const banner = document.getElementById("completionBanner");
+    const banner = document.getElementById("jobCompletedBanner");
     if (banner) banner.style.display = "block";
 }
 
@@ -313,9 +312,59 @@ function addRow(tableId, date, job, ink, batch, weight) {
 /* ======================================================
    CLEAR TABLE
 ====================================================== */
-function clearTable(tableId) {
-    var table = document.getElementById(tableId);
+function ClearTable() {
+    var table = document.getElementById("scansBody");
     while (table.rows.length > 0) {
         table.deleteRow(0);
     }
+}
+
+/* ======================================================
+   CSV LOADER — MATCHES YOUR HTML EXACTLY
+====================================================== */
+function loadCsvFile() {
+    document.getElementById("fileElem").click();
+}
+
+function handleFiles(files) {
+    if (!files || files.length === 0) {
+        alert("No file selected.");
+        return;
+    }
+
+    const file = files[0];
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+        const text = e.target.result;
+        parseCsvAndLoadRows(text);
+    };
+
+    reader.onerror = function () {
+        alert("Error reading file.");
+    };
+
+    reader.readAsText(file);
+}
+
+function parseCsvAndLoadRows(csvText) {
+    const lines = csvText.split(/\r?\n/);
+
+    for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line === "") continue;
+
+        const parts = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+        if (!parts || parts.length < 5) continue;
+
+        const date = parts[0].replace(/"/g, "");
+        const job = parts[1].replace(/"/g, "");
+        const ink = parts[2].replace(/"/g, "");
+        const batch = parts[3].replace(/"/g, "");
+        const weight = parts[4].replace(/"/g, "");
+
+        addRow("scansBody", date, job, ink, batch, weight);
+    }
+
+    alert("CSV loaded successfully!");
 }
