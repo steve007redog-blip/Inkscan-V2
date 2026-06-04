@@ -350,7 +350,15 @@ function loadCsvFile() {
     var clear = confirm("Loading a file will clear the current table. Continue?");
     if (clear) {
         ClearTable();
-        if (fileElem) fileElem.click();
+        // Ensure fileElem is available
+        setTimeout(() => {
+            const fileElem = document.getElementById("fileElem");
+            if (fileElem) {
+                fileElem.click();
+            } else {
+                alert("Error: File input element not found");
+            }
+        }, 100);
     }
 }
 
@@ -361,34 +369,56 @@ function handleFiles(files) {
     const reader = new FileReader();
     
     reader.onload = function(e) {
-        const csv = e.target.result;
-        const lines = csv.trim().split('\n');
-        
-        // Skip header row
-        for (let i = 1; i < lines.length; i++) {
-            const line = lines[i].trim();
-            if (!line) continue;
+        try {
+            const csv = e.target.result;
+            const lines = csv.trim().split('\n');
             
-            // Parse CSV line (handle quoted fields)
-            const cols = parseCSVLine(line);
-            
-            if (cols.length >= 5) {
-                addRow(
-                    "scansBody",
-                    cols[0].trim(),  // date
-                    cols[1].trim(),  // job number
-                    cols[2].trim(),  // ink code
-                    cols[3].trim(),  // batch code
-                    cols[4].trim()   // weight
-                );
+            if (lines.length < 2) {
+                alert("CSV file is empty or invalid.");
+                return;
             }
+            
+            // Skip header row
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                // Parse CSV line (handle quoted fields)
+                const cols = parseCSVLine(line);
+                
+                // Ensure we have at least 5 columns
+                if (cols.length >= 5) {
+                    addRow(
+                        "scansBody",
+                        cols[0].trim(),  // date
+                        cols[1].trim(),  // job number
+                        cols[2].trim(),  // ink code
+                        cols[3].trim(),  // batch code
+                        cols[4].trim()   // weight
+                    );
+                }
+            }
+            
+            if (lines.length < 2) {
+                alert("No data rows found in CSV file.");
+            }
+        } catch (error) {
+            console.error("Error loading CSV:", error);
+            alert("Error loading CSV file: " + error.message);
         }
+    };
+    
+    reader.onerror = function() {
+        alert("Error reading file");
     };
     
     reader.readAsText(file);
     
     // Reset file input
-    document.getElementById("fileElem").value = "";
+    const fileElem = document.getElementById("fileElem");
+    if (fileElem) {
+        fileElem.value = "";
+    }
 }
 
 function parseCSVLine(line) {
@@ -401,13 +431,16 @@ function parseCSVLine(line) {
         const nextChar = line[i + 1];
         
         if (char === '"') {
+            // Check if it's an escaped quote
             if (inQuotes && nextChar === '"') {
                 current += '"';
-                i++;
+                i++; // Skip next quote
             } else {
+                // Toggle quote state
                 inQuotes = !inQuotes;
             }
         } else if (char === ',' && !inQuotes) {
+            // Column separator found (not in quotes)
             result.push(current);
             current = "";
         } else {
@@ -415,8 +448,17 @@ function parseCSVLine(line) {
         }
     }
     
+    // Add the last column
     result.push(current);
-    return result;
+    
+    // Clean up by removing surrounding quotes if present
+    return result.map(col => {
+        col = col.trim();
+        if (col.startsWith('"') && col.endsWith('"')) {
+            col = col.slice(1, -1);
+        }
+        return col;
+    });
 }
 
 function addRow(tBodyID, rDate, rJobNo, rInkCode, rBatchCode, rWeight) {
