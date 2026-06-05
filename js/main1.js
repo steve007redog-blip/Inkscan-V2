@@ -320,29 +320,33 @@ function ClearTable() {
 }
 
 /* ======================================================
-   RESET JOB
+   ⭐ FIX #1 — FULL RESET AFTER FINISH JOB
 ====================================================== */
 function resetJob() {
     isJobCompleted = false;
 
+    // Re-enable all inputs and buttons
     document.querySelectorAll("input, button").forEach(el => {
         el.disabled = false;
     });
 
+    // Hide completion banner
     const banner = document.getElementById("jobCompletedBanner");
     if (banner) banner.style.display = "none";
 
+    // Clear fields
     document.getElementById("JobNo").value = "";
     document.getElementById("InkCodeInput").value = "";
     document.getElementById("BatchCode").value = "";
     document.getElementById("Weight").value = "";
     document.getElementById("InkCodeInput").readOnly = false;
 
+    // Clear table
     ClearTable();
 }
 
 /* ======================================================
-   SAFE CSV PARSER
+   ⭐ FIX #2 — SAFE CSV PARSER
 ====================================================== */
 function parseCSVLine(line) {
     const result = [];
@@ -370,10 +374,11 @@ function parseCSVLine(line) {
 }
 
 /* ======================================================
-   CSV LOADER — WITH JOB NUMBER RESTORE FIX
+   CSV LOADER — WITH FIELD CLEARING (Option A)
 ====================================================== */
 function loadCsvFile() {
 
+    // Clear fields BEFORE loading CSV
     document.getElementById("InkCodeInput").value = "";
     document.getElementById("BatchCode").value = "";
     document.getElementById("Weight").value = "";
@@ -406,4 +411,21 @@ function handleFiles(files) {
 function parseCsvAndLoadRows(csvText) {
     const lines = csvText.split(/\r?\n/);
 
-    let
+    for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line === "") continue;
+
+        const parts = parseCSVLine(line);
+        if (parts.length < 5) continue;
+
+        const date = parts[0];
+        const job = parts[1];
+        const ink = parts[2];
+        const batch = parts[3];
+        const weight = parts[4];
+
+        addRow("scansBody", date, job, ink, batch, weight);
+    }
+
+    alert("CSV loaded successfully!");
+}
