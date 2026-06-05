@@ -37,6 +37,7 @@ if (navigator.serviceWorker.controller) {
 <script src="./js/jquery.min.js"></script>
 <script src="./js/popper.min.js"></script>
 <script src="./js/bootstrap.min.js"></script>
+
 <style>
   .ink-code-wrapper {
     position: relative;
@@ -97,6 +98,7 @@ if (navigator.serviceWorker.controller) {
         <p>Turn on the bluetooth barcode scanner.</p>
 
         <div class="container">
+
             <!-- Job Completed Banner -->
             <div id="jobCompletedBanner" class="job-completed-banner">
               ✓ Job Completed! Form is now locked. Clear or start a new job.
@@ -133,7 +135,8 @@ if (navigator.serviceWorker.controller) {
                                 <input type="text" class="form-control input-lg" id="InkCodeInput" autocomplete="off" placeholder="Start typing ink code">
                                 <button id="editInkBtn" class="edit-ink-btn" type="button" style="display: none;">✏️ Edit</button>
                             </div>
-                            <!-- ⭐ REQUIRED AUTOCOMPLETE LIST CONTAINER ⭐ -->
+
+                            <!-- Autocomplete container -->
                             <div id="autocomplete-list" class="autocomplete-items"></div>
                         </div>
                     </div>
@@ -162,8 +165,11 @@ if (navigator.serviceWorker.controller) {
                             <div class="btn-group-vertical">
                                 <div style="display: flex; gap: 8px;">
                                     <button id="btn-save-continue" class="btn btn-primary">Save & Continue</button>
-                                    <button id="btn-clear" class="btn btn-primary" onclick="ClearTable()">Clear Table</button>
+
+                                    <!-- ⭐ FIXED: Clear button now calls resetJob() ⭐ -->
+                                    <button id="btn-clear" class="btn btn-primary" onclick="resetJob()">Clear Table</button>
                                 </div>
+
                                 <button id="btn-complete-job" class="btn btn-success">Complete/Finish Job</button>
                             </div>
                         </div>
