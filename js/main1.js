@@ -410,6 +410,7 @@ function handleFiles(files) {
 
 function parseCsvAndLoadRows(csvText) {
     const lines = csvText.split(/\r?\n/);
+    let firstJobNumber = "";   // capture the first job number
 
     for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
@@ -424,7 +425,13 @@ function parseCsvAndLoadRows(csvText) {
         const batch = parts[3];
         const weight = parts[4];
 
+        if (!firstJobNumber) firstJobNumber = job;   // store the first job number
+
         addRow("scansBody", date, job, ink, batch, weight);
+    }
+
+    if (firstJobNumber) {
+        document.getElementById("JobNo").value = firstJobNumber;  // restore it
     }
 
     alert("CSV loaded successfully!");
