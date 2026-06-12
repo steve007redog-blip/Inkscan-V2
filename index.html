@@ -1,215 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ink & Supplies Order Form</title>
 
-<title>Ink Scan</title>
-<link rel="manifest" href="manifest.json">
-<script>
-if (navigator.serviceWorker.controller) {
-  console.log('active service worker found, no need to register')
-} else {
-  navigator.serviceWorker.register('sw.js', {
-    scope: '/inkscan/'
-  }).then(function(reg) {
-    console.log('Service worker has been registered for scope:'+ reg.scope);
-  });
-}
-</script>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
 
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="msapplication-TileColor" content="#c6181e">
-<meta name="theme-color" content="#c6181e">
-<meta name="application-name" content="Ink Scan" />
-<meta name="apple-mobile-web-app-title" content="Ink Scan" />
-
-<link rel="apple-touch-icon" sizes="180x180" href="./img/apple-touch-icon.png">
-<link rel="apple-touch-startup-image" href="./img/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="./img/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="./img/favicon-16x16.png">
-<link rel="mask-icon" href="./img/safari-pinned-tab.svg" color="#c6181e">
-
-<link rel="stylesheet" href="css/bootstrap.min.css">
-<link rel="stylesheet" href="css/main.css">
-<script src="./js/jquery.min.js"></script>
-<script src="./js/popper.min.js"></script>
-<script src="./js/bootstrap.min.js"></script>
-
-<style>
-  .ink-code-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-
-  .ink-code-wrapper input {
-    flex: 1;
-  }
-
-  .edit-ink-btn {
-    padding: 6px 10px;
-    font-size: 14px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-
-  .edit-ink-btn:hover {
-    background-color: #0056b3;
-  }
-
-  .edit-ink-btn:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-  }
-
-  .job-completed-banner {
-    background-color: #28a745;
-    color: white;
-    padding: 15px;
-    border-radius: 4px;
-    margin-bottom: 20px;
-    display: none;
-    text-align: center;
-    font-weight: bold;
-  }
-
-  .job-completed-banner.show {
-    display: block;
-  }
-
-  .btn-group-vertical {
-    gap: 8px;
-    display: flex;
-    flex-direction: column;
-  }
-</style>
+    <style>
+        .autocomplete-list {
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            width: 100%;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 10;
+        }
+        .autocomplete-item {
+            padding: 6px;
+            cursor: pointer;
+        }
+        .autocomplete-item:hover {
+            background: #f0f0f0;
+        }
+    </style>
 </head>
 
-<body>
-        <h2>Ink Batch Recorder</h2>
-        <p>Turn on the bluetooth barcode scanner.</p>
+<body class="p-4">
 
-        <div class="container">
+    <!-- ============================
+         PAGE HEADER + NAVIGATION
+    ============================= -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="m-0">Ink & Supplies Order Form</h2>
 
-            <!-- Job Completed Banner -->
-            <div id="jobCompletedBanner" class="job-completed-banner">
-              ✓ Job Completed! Form is now locked. Clear or start a new job.
-            </div>
+        <button class="btn btn-secondary" onclick="window.location.href='orders.html'">
+            View All Orders
+        </button>
+    </div>
 
-            <div class="row">
-                <div class="col-50">
+    <!-- ============================
+         ORDER HEADER SECTION
+    ============================= -->
+    <div class="row mb-3">
 
-                    <div class="row">
-                        <div class="col-25">
-                            <label for="date">Date</label>
-                        </div>
-                        <div class="col-75">
-                            <input type="text" class="form-control" id="dateInput" required>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-25">
-                            <label for="JobNo">Job Number</label>
-                        </div>
-                        <div class="col-75">
-                            <input type="text" class="form-control" id="JobNo" required>
-                        </div>
-                    </div>
-
-                    <!-- AUTOCOMPLETE INK CODE FIELD WITH EDIT BUTTON -->
-                    <div class="row">
-                        <div class="col-25">
-                            <label for="InkCodeInput">Ink Code</label>
-                        </div>
-                        <div class="col-75">
-                            <div class="ink-code-wrapper">
-                                <input type="text" class="form-control input-lg" id="InkCodeInput" autocomplete="off" placeholder="Start typing ink code">
-                                <button id="editInkBtn" class="edit-ink-btn" type="button" style="display: none;">✏️ Edit</button>
-                            </div>
-
-                            <div id="autocomplete-list" class="autocomplete-items"></div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-25">
-                            <label for="BatchCode">Batch Code</label>
-                        </div>
-                        <div class="col-75">
-                            <input type="text" class="form-control input-lg" id="BatchCode" placeholder="Scan or enter batch code" required>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-25">
-                            <label for="Weight">Weight</label>
-                        </div>
-                        <div class="col-75">
-                            <input type="text" class="form-control input-lg" id="Weight" required>
-                        </div>
-                    </div>
-
-                    <!-- ⭐ FIXED: Clear/New Job button moved OUTSIDE disabled group ⭐ -->
-                    <div class="row" style="margin-top: 10px;">
-                        <div class="col-25"></div>
-                        <div class="col-75">
-                            <button id="btn-clear" class="btn btn-warning" onclick="resetJob()" style="margin-bottom: 12px;">
-                                Clear / New Job
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-25"></div>
-                        <div class="col-75">
-                            <div class="btn-group-vertical">
-                                <div style="display: flex; gap: 8px;">
-                                    <button id="btn-save-continue" class="btn btn-primary">Save & Continue</button>
-                                </div>
-                                <button id="btn-complete-job" class="btn btn-success">Complete/Finish Job</button>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="col-50">
-                    <table id="ScansTable">
-                        <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Job Number</th>
-                            <th>Ink Code</th>
-                            <th>Batch Code</th>
-                            <th>Weight</th>
-                        </tr>
-                        </thead>
-                        <tbody id="scansBody"></tbody>
-                    </table>
-
-                    <br>
-
-                    <input id="fileElem" type="file" accept=".csv,text/csv" onchange="handleFiles(this.files)" multiple style="display:none">
-
-                    <button id="fileSelect" class="btn btn-primary" onclick="loadCsvFile()">Load CSV file</button>
-
-                </div>
-            </div>
+        <div class="col-md-3">
+            <label>Order Number</label>
+            <input id="orderNumber" class="form-control" readonly>
         </div>
 
-</body>
+        <div class="col-md-3">
+            <label>Date</label>
+            <input id="orderDate" type="date" class="form-control">
+        </div>
 
-<script src="js/FileSaver.js" defer></script>
-<script src="js/main1.js" defer></script>
-<script src="js/table2csv.js" defer></script>
-<script src="js/manup.js" defer></script>
+        <div class="col-md-3">
+            <label>Supplier</label>
+            <select id="supplier" class="form-control"></select>
+        </div>
+
+        <div class="col-md-3">
+            <label>Status</label>
+            <select id="orderStatus" class="form-control">
+                <option>Pending</option>
+                <option>Partially Supplied</option>
+                <option>Fully Supplied</option>
+            </select>
+        </div>
+
+    </div>
+
+    <!-- ============================
+         ITEMS TABLE
+    ============================= -->
+    <h4>Items to Order</h4>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Item Type</th>
+                <th>Code</th>
+                <th>Description</th>
+                <th>Qty</th>
+                <th>Expected Date</th>
+                <th>Remove</th>
+            </tr>
+        </thead>
+
+        <tbody id="itemsBody">
+            <!-- Rows injected by JS -->
+        </tbody>
+    </table>
+
+    <button id="addItemRow" class="btn btn-success mb-3">Add Item</button>
+    <button id="clearItems" class="btn btn-danger mb-3">Clear All Items</button>
+
+    <!-- ============================
+         COMMENTS SECTION
+    ============================= -->
+    <div class="mb-3">
+        <label>General Comments</label>
+        <textarea id="orderComments" class="form-control" rows="2"></textarea>
+    </div>
+
+    <!-- ============================
+         ACTION BUTTONS
+    ============================= -->
+    <div class="d-flex gap-3">
+        <button id="saveOrder" class="btn btn-primary">Save Order</button>
+        <button id="sendEmail" class="btn btn-info">Send Email</button>
+    </div>
+
+    <!-- ============================
+         MAIN SCRIPT (POINTS TO mainv2.js)
+    ============================= -->
+    <script src="js/mainv2.js?v=1"></script>
+
+</body>
 </html>
