@@ -167,13 +167,22 @@ $("#Weight").on("keydown", function (e) {
         }
     }
 });
+
 /* ======================================================
-   ⭐ NUMBERS‑ONLY FILTER FOR WEIGHT FIELD
+   ⭐ NUMBERS‑ONLY FILTER FOR WEIGHT FIELD (NEGATIVE OK)
 ====================================================== */
 const weightField = document.getElementById("Weight");
 if (weightField) {
     weightField.addEventListener("input", () => {
-        weightField.value = weightField.value.replace(/[^0-9]/g, "");
+        let v = weightField.value;
+
+        // Remove anything not digit or minus
+        v = v.replace(/[^0-9\-]/g, "");
+
+        // Allow minus ONLY at the start
+        v = v.replace(/(?!^)-/g, "");
+
+        weightField.value = v;
     });
 }
 
@@ -200,7 +209,6 @@ function ClearTable() {
         table.deleteRow(0);
     }
 }
-
 /* ======================================================
    ⭐ FIX #1 — FULL RESET AFTER FINISH JOB
 ====================================================== */
