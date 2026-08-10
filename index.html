@@ -154,11 +154,12 @@ if (navigator.serviceWorker.controller) {
                             <label for="Weight">Weight</label>
                         </div>
                         <div class="col-75">
-                            <input type="number" inputmode="numeric" step="1" class="form-control input-lg" id="Weight" required>
+                            <!-- ⭐ CHANGED: type="number" → type="text" ⭐ -->
+                            <input type="text" inputmode="numeric" class="form-control input-lg" id="Weight" required>
                         </div>
                     </div>
 
-                    <!-- ⭐ FIXED: Clear/New Job button moved OUTSIDE disabled group ⭐ -->
+                    <!-- Clear/New Job -->
                     <div class="row" style="margin-top: 10px;">
                         <div class="col-25"></div>
                         <div class="col-75">
