@@ -167,6 +167,15 @@ $("#Weight").on("keydown", function (e) {
         }
     }
 });
+/* ======================================================
+   ⭐ NUMBERS‑ONLY FILTER FOR WEIGHT FIELD
+====================================================== */
+const weightField = document.getElementById("Weight");
+if (weightField) {
+    weightField.addEventListener("input", () => {
+        weightField.value = weightField.value.replace(/[^0-9]/g, "");
+    });
+}
 
 /* ======================================================
    ADD ROW TO TABLE
@@ -198,23 +207,19 @@ function ClearTable() {
 function resetJob() {
     isJobCompleted = false;
 
-    // Re-enable all inputs and buttons
     document.querySelectorAll("input, button").forEach(el => {
         el.disabled = false;
     });
 
-    // Hide completion banner
     const banner = document.getElementById("jobCompletedBanner");
     if (banner) banner.style.display = "none";
 
-    // Clear fields
     document.getElementById("JobNo").value = "";
     document.getElementById("InkCodeInput").value = "";
     document.getElementById("BatchCode").value = "";
     document.getElementById("Weight").value = "";
     document.getElementById("InkCodeInput").readOnly = false;
 
-    // Clear table
     ClearTable();
 }
 
@@ -245,6 +250,7 @@ function parseCSVLine(line) {
     result.push(current.trim());
     return result;
 }
+
 /* ======================================================
    SAVE & CONTINUE (INDIVIDUAL ENTRIES CSV)
 ====================================================== */
@@ -272,7 +278,6 @@ $("#btn-save-continue").click(function () {
         var batch = $(cols[3]).text().trim();
         var weight = $(cols[4]).text();
 
-        // Date wrapped in quotes so Excel treats it as text
         csv += `"${date}",${job},${ink},"${batch}",${weight}\n`;
     });
 
@@ -333,7 +338,6 @@ $("#btn-complete-job").click(function () {
 
     for (var ink in totals) {
         let batchList = Array.from(totals[ink].batches).join(", ");
-        // Date wrapped in quotes here too
         csv += `"${totals[ink].date}",${totals[ink].job},${ink},${totals[ink].weight},"${batchList}"\n`;
     }
 
@@ -356,7 +360,6 @@ function disableForm() {
         if (el.id !== "btn-clear") el.disabled = true;
     });
 }
-
 /* ======================================================
    ENABLE FORM
 ====================================================== */
@@ -373,12 +376,11 @@ function showCompletionBanner() {
     const banner = document.getElementById("jobCompletedBanner");
     if (banner) banner.style.display = "block";
 }
+
 /* ======================================================
    CSV LOADER — WITH FIELD CLEARING (Option A)
 ====================================================== */
 function loadCsvFile() {
-
-    // Clear fields BEFORE loading CSV
     document.getElementById("InkCodeInput").value = "";
     document.getElementById("BatchCode").value = "";
     document.getElementById("Weight").value = "";
@@ -409,11 +411,10 @@ function handleFiles(files) {
 }
 
 function parseCsvAndLoadRows(csvText) {
-    // Clear existing rows so jobs don't merge
     ClearTable();
 
     const lines = csvText.split(/\r?\n/);
-    let firstJobNumber = "";   // capture the first job number
+    let firstJobNumber = "";
 
     for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
@@ -428,13 +429,13 @@ function parseCsvAndLoadRows(csvText) {
         const batch = parts[3];
         const weight = parts[4];
 
-        if (!firstJobNumber) firstJobNumber = job;   // store the first job number
+        if (!firstJobNumber) firstJobNumber = job;
 
         addRow("scansBody", date, job, ink, batch, weight);
     }
 
     if (firstJobNumber) {
-        document.getElementById("JobNo").value = firstJobNumber;  // restore it
+        document.getElementById("JobNo").value = firstJobNumber;
     }
 
     alert("CSV loaded successfully!");
