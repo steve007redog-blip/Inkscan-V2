@@ -154,8 +154,17 @@ if (navigator.serviceWorker.controller) {
                             <label for="Weight">Weight</label>
                         </div>
                         <div class="col-75">
-                            <!-- ⭐ FIXED: numeric → decimal ⭐ -->
-                            <input type="text" inputmode="decimal" class="form-control input-lg" id="Weight" required>
+
+                            <!-- ⭐ FIXED WEIGHT FIELD (minus key works on tablet) ⭐ -->
+                            <input 
+                              type="text"
+                              inputmode="numeric"
+                              pattern="-?[0-9]*"
+                              class="form-control input-lg"
+                              id="Weight"
+                              required
+                            >
+
                         </div>
                     </div>
 
