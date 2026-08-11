@@ -169,24 +169,6 @@ $("#Weight").on("keydown", function (e) {
 });
 
 /* ======================================================
-   ⭐ NUMBERS‑ONLY FILTER FOR WEIGHT FIELD (NEGATIVE OK)
-====================================================== */
-const weightField = document.getElementById("Weight");
-if (weightField) {
-    weightField.addEventListener("input", () => {
-        let v = weightField.value;
-
-        // Remove anything not digit or minus
-        v = v.replace(/[^0-9\-]/g, "");
-
-        // Allow minus ONLY at the start
-        v = v.replace(/(?!^)-/g, "");
-
-        weightField.value = v;
-    });
-}
-
-/* ======================================================
    ADD ROW TO TABLE
 ====================================================== */
 function addRow(tableId, date, job, ink, batch, weight) {
@@ -368,6 +350,7 @@ function disableForm() {
         if (el.id !== "btn-clear") el.disabled = true;
     });
 }
+
 /* ======================================================
    ENABLE FORM
 ====================================================== */
