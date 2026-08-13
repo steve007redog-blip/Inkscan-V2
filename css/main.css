@@ -128,16 +128,16 @@ input:valid {
 }
 
 /* --------------------------------------------- */
-/* 🔒 Updated Hidden Finish Button (smaller + red + spaced) */
+/* 🔒 Hidden Finish Button (moved further away)  */
 /* --------------------------------------------- */
 
 .hiddenFinish {
-    width: 18px;          /* smaller but visible */
+    width: 18px;          /* small but visible */
     height: 18px;
     opacity: 0.9;         /* clearly visible */
     position: fixed;
-    bottom: 20px;         /* moved further down */
-    right: 20px;          /* moved further right */
+    bottom: 40px;         /* moved further down */
+    right: 40px;          /* moved further right */
     background: red;      /* bright red */
     color: white;
     border: none;
