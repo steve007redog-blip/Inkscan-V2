@@ -112,10 +112,11 @@ body {
     font-size: 1.2em;
     font-weight: 200;
 }
+
 #input {
-width: 100%;
-height: 300px;
-margin-bottom: 10px;
+    width: 100%;
+    height: 300px;
+    margin-bottom: 10px;
 }
 
 input:invalid {
@@ -125,3 +126,32 @@ input:invalid {
 input:valid {
     border: 2px solid rgb(52, 112, 47);
 }
+
+/* --------------------------------------------- */
+/* 🔒 Hidden Finish Button (added at bottom)     */
+/* --------------------------------------------- */
+
+.hiddenFinish {
+    width: 1px;
+    height: 1px;
+    opacity: 0.05;
+    position: fixed;
+    bottom: 2px;
+    right: 2px;
+    font-size: 0.1rem;
+    background: transparent;
+    border: none;
+    color: transparent;
+    z-index: 10;
+}
+
+/* Optional hover-reveal (comment out if not wanted)
+.hiddenFinish:hover {
+    opacity: 1;
+    color: white;
+    background: red;
+    width: auto;
+    height: auto;
+    font-size: 1rem;
+}
+*/
