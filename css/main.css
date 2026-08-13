@@ -125,16 +125,16 @@ input:valid {
 }
 
 /* --------------------------------------------- */
-/* 🔒 Hidden Finish Button (small + red + spaced) */
+/* 🔒 Hidden Finish Button (bottom-left, small, red) */
 /* --------------------------------------------- */
 
 .hiddenFinish {
-    width: 14px;          /* small but visible */
-    height: 14px;
+    width: 16px;          /* small but visible */
+    height: 16px;
     opacity: 0.9;         /* clearly visible */
     position: fixed;
-    bottom: 60px;         /* moved WELL away from other buttons */
-    right: 20px;          /* comfortable spacing */
+    bottom: 20px;         /* bottom-left corner */
+    left: 20px;           /* SAFE from all UI elements */
     background: red;      /* bright red */
     color: white;
     border: none;
