@@ -125,21 +125,19 @@ input:valid {
 }
 
 /* --------------------------------------------- */
-/* 🔒 Hidden Finish Button (bottom-left, small, red) */
+/* 🔒 Hidden Finish Button (tiny red dot)        */
 /* --------------------------------------------- */
 
 .hiddenFinish {
-    width: 16px;          /* small but visible */
-    height: 16px;
-    opacity: 0.9;         /* clearly visible */
+    width: 14px;
+    height: 14px;
+    background: red;
+    border-radius: 50%;
     position: fixed;
-    bottom: 20px;         /* bottom-left corner */
-    left: 20px;           /* SAFE from all UI elements */
-    background: red;      /* bright red */
-    color: white;
+    bottom: 20px;
+    right: 20px;
+    opacity: 0.9;
     border: none;
-    border-radius: 4px;
-    font-size: 0.55rem;   /* tiny readable text */
-    padding: 2px;         /* minimal padding */
-    z-index: 9999;        /* always on top */
+    padding: 0;
+    z-index: 9999;
 }
