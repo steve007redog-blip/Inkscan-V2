@@ -128,21 +128,21 @@ input:valid {
 }
 
 /* --------------------------------------------- */
-/* 🔒 Updated Hidden Finish Button (5× bigger + red) */
+/* 🔒 Updated Hidden Finish Button (smaller + red + spaced) */
 /* --------------------------------------------- */
 
 .hiddenFinish {
-    width: 25px;          /* 5× bigger */
-    height: 25px;
+    width: 18px;          /* smaller but visible */
+    height: 18px;
     opacity: 0.9;         /* clearly visible */
     position: fixed;
-    bottom: 10px;         /* slightly up from the edge */
-    right: 10px;
+    bottom: 20px;         /* moved further down */
+    right: 20px;          /* moved further right */
     background: red;      /* bright red */
     color: white;
     border: none;
     border-radius: 4px;
-    font-size: 0.7rem;    /* readable but small */
-    padding: 4px 6px;     /* gives it shape */
+    font-size: 0.6rem;    /* small readable text */
+    padding: 2px 4px;     /* tighter padding */
     z-index: 9999;        /* always on top */
 }
