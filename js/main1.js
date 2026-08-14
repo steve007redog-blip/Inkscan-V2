@@ -192,29 +192,14 @@ function ClearTable() {
     }
 }
 /* ======================================================
-   ⭐ FIX #1 — FULL RESET AFTER FINISH JOB
+   ⭐ FIX — UNIVERSAL SAFE CSV ESCAPER
 ====================================================== */
-function resetJob() {
-    isJobCompleted = false;
-
-    document.querySelectorAll("input, button").forEach(el => {
-        el.disabled = false;
-    });
-
-    const banner = document.getElementById("jobCompletedBanner");
-    if (banner) banner.style.display = "none";
-
-    document.getElementById("JobNo").value = "";
-    document.getElementById("InkCodeInput").value = "";
-    document.getElementById("BatchCode").value = "";
-    document.getElementById("Weight").value = "";
-    document.getElementById("InkCodeInput").readOnly = false;
-
-    ClearTable();
+function escapeCSV(value) {
+    return `"${String(value).replace(/"/g, '""')}"`;
 }
 
 /* ======================================================
-   ⭐ FIX #2 — SAFE CSV PARSER
+   ⭐ FIX — SAFE CSV PARSER (unchanged)
 ====================================================== */
 function parseCSVLine(line) {
     const result = [];
@@ -268,7 +253,13 @@ $("#btn-save-continue").click(function () {
         var batch = $(cols[3]).text().trim();
         var weight = $(cols[4]).text();
 
-        csv += `"${date}",${job},${ink},"${batch}",${weight}\n`;
+        csv += [
+            escapeCSV(date),
+            escapeCSV(job),
+            escapeCSV(ink),
+            escapeCSV(batch),
+            escapeCSV(weight)
+        ].join(",") + "\n";
     });
 
     var jobNo = $("#JobNo").val();
@@ -328,7 +319,13 @@ $("#btn-complete-job").click(function () {
 
     for (var ink in totals) {
         let batchList = Array.from(totals[ink].batches).join(", ");
-        csv += `"${totals[ink].date}",${totals[ink].job},${ink},${totals[ink].weight},"${batchList}"\n`;
+        csv += [
+            escapeCSV(totals[ink].date),
+            escapeCSV(totals[ink].job),
+            escapeCSV(ink),
+            escapeCSV(totals[ink].weight),
+            escapeCSV(batchList)
+        ].join(",") + "\n";
     }
 
     var jobNo = $("#JobNo").val();
@@ -367,9 +364,8 @@ function showCompletionBanner() {
     const banner = document.getElementById("jobCompletedBanner");
     if (banner) banner.style.display = "block";
 }
-
 /* ======================================================
-   CSV LOADER — WITH FIELD CLEARING (Option A)
+   CSV LOADER — WITH FIELD CLEARING
 ====================================================== */
 function loadCsvFile() {
     document.getElementById("InkCodeInput").value = "";
