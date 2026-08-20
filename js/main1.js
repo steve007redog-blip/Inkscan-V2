@@ -191,15 +191,16 @@ function ClearTable() {
         table.deleteRow(0);
     }
 }
+
 /* ======================================================
-   ⭐ FIX — UNIVERSAL SAFE CSV ESCAPER
+   SAFE CSV ESCAPER
 ====================================================== */
 function escapeCSV(value) {
     return `"${String(value).replace(/"/g, '""')}"`;
 }
 
 /* ======================================================
-   ⭐ FIX — SAFE CSV PARSER (unchanged)
+   SAFE CSV PARSER
 ====================================================== */
 function parseCSVLine(line) {
     const result = [];
@@ -225,7 +226,6 @@ function parseCSVLine(line) {
     result.push(current.trim());
     return result;
 }
-
 /* ======================================================
    SAVE & CONTINUE (INDIVIDUAL ENTRIES CSV)
 ====================================================== */
@@ -363,6 +363,33 @@ function enableForm() {
 function showCompletionBanner() {
     const banner = document.getElementById("jobCompletedBanner");
     if (banner) banner.style.display = "block";
+}
+
+/* ======================================================
+   RESET JOB (CLEAR / NEW JOB BUTTON)
+====================================================== */
+function resetJob() {
+    isJobCompleted = false;
+
+    enableForm();
+
+    document.getElementById("JobNo").value = "";
+    document.getElementById("InkCodeInput").value = "";
+    document.getElementById("BatchCode").value = "";
+    document.getElementById("Weight").value = "";
+
+    document.getElementById("InkCodeInput").readOnly = false;
+    editInkBtn.style.display = "none";
+
+    ClearTable();
+
+    const banner = document.getElementById("jobCompletedBanner");
+    if (banner) banner.style.display = "none";
+
+    const today = new Date();
+    document.getElementById("dateInput").value = today.toLocaleDateString("en-NZ");
+
+    document.getElementById("JobNo").focus();
 }
 /* ======================================================
    CSV LOADER — WITH FIELD CLEARING
