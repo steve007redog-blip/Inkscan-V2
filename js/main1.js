@@ -262,7 +262,7 @@ $("#btn-save-continue").click(function () {
         ].join(",") + "\n";
     });
 
-    var jobNo = $("#JobNo").val();
+    var jobNo = $("#JobNo").val().replace(/\s+/g, "_");
     var blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     saveAs(blob, jobNo + "_entries.csv");
 
@@ -328,7 +328,176 @@ $("#btn-complete-job").click(function () {
         ].join(",") + "\n";
     }
 
-    var jobNo = $("#JobNo").val();
+    var jobNo = $("#JobNo").val().replace(/\s+/g, "_");
+    var blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    saveAs(blob, jobNo + "_totals.csv");
+
+    isJobCompleted = true;
+    disableForm();
+    showCompletionBanner();
+
+    alert("Job completed! Totals exported. Form is now locked.");
+});
+
+/* ======================================================
+   DISABLE FORM
+====================================================== */
+function disableForm() {
+    document.querySelectorAll("input, button").forEach(el => {
+        if (el.id !== "btn-clear") el.disabled = true;
+    });
+}
+
+/* ======================================================
+   ENABLE FORM
+====================================================== */
+function enableForm() {
+    document.querySelectorAll("input, button").forEach(el => {
+        el.disabled = false;
+    });
+}
+
+/* ======================================================
+   SHOW COMPLETION BANNER
+====================================================== */
+function showCompletionBanner() {
+    const banner = document.getElementById("jobCompletedBanner");
+    if (banner) banner.style.display = "block";
+}
+`"${String(value).replace(/"/g, '""')}"`;
+}
+
+/* ======================================================
+   SAFE CSV PARSER
+====================================================== */
+function parseCSVLine(line) {
+    const result = [];
+    let current = "";
+    let insideQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+
+        if (char === '"' && line[i + 1] === '"') {
+            current += '"';
+            i++;
+        } else if (char === '"') {
+            insideQuotes = !insideQuotes;
+        } else if (char === ',' && !insideQuotes) {
+            result.push(current.trim());
+            current = "";
+        } else {
+            current += char;
+        }
+    }
+
+    result.push(current.trim());
+    return result;
+}
+
+/* ======================================================
+   SAVE & CONTINUE (INDIVIDUAL ENTRIES CSV)
+====================================================== */
+$("#btn-save-continue").click(function () {
+    if (isJobCompleted) {
+        alert("Job is completed. Clear the form or start a new job.");
+        return;
+    }
+
+    var rows = $("#scansBody tr");
+
+    if (rows.length === 0) {
+        alert("No entries to save. Add some ink records first.");
+        return;
+    }
+
+    var csv = "Date,Job Number,Ink Code,Batch Code,Weight\n";
+
+    rows.each(function () {
+        var cols = $(this).find("td");
+
+        var date = $(cols[0]).text();
+        var job = $(cols[1]).text();
+        var ink = $(cols[2]).text();
+        var batch = $(cols[3]).text().trim();
+        var weight = $(cols[4]).text();
+
+        csv += [
+            escapeCSV(date),
+            escapeCSV(job),
+            escapeCSV(ink),
+            escapeCSV(batch),
+            escapeCSV(weight)
+        ].join(",") + "\n";
+    });
+
+    var jobNo = $("#JobNo").val().replace(/\s+/g, "_");
+    var blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    saveAs(blob, jobNo + "_entries.csv");
+
+    alert("Saved! You can continue adding more entries or load this CSV later.");
+});
+
+/* ======================================================
+   COMPLETE JOB (TOTALS ONLY)
+====================================================== */
+$("#btn-complete-job").click(function () {
+    if (isJobCompleted) {
+        alert("Job is already completed.");
+        return;
+    }
+
+    var rows = $("#scansBody tr");
+
+    if (rows.length === 0) {
+        alert("No entries to export. Add some ink records first.");
+        return;
+    }
+
+    var confirmFinish = window.confirm("Complete job and export totals only? This will lock the form for new entries.");
+    if (!confirmFinish) return;
+
+    var totals = {};
+
+    rows.each(function () {
+        var cols = $(this).find("td");
+
+        var date = $(cols[0]).text();
+        var job = $(cols[1]).text();
+        var ink = $(cols[2]).text();
+        var batch = $(cols[3]).text().trim();
+        var weight = parseFloat($(cols[4]).text());
+
+        if (!totals[ink]) {
+            totals[ink] = {
+                date: date,
+                job: job,
+                weight: 0,
+                batches: new Set()
+            };
+        }
+
+        totals[ink].weight += weight;
+
+        if (batch !== "") {
+            totals[ink].batches.add(batch);
+        }
+    });
+
+    var csv = "Date,Job Number,Ink Code,Total Weight,Batch Codes Used\n";
+
+    for (var ink in totals) {
+        let batchList = Array.from(totals[ink].batches).join(", ");
+        csv += [
+            escapeCSV(totals[ink].date),
+            escapeCSV(totals[ink].job),
+            escapeCSV(ink),
+            escapeCSV(totals[ink].weight),
+            escapeCSV(batchList)
+        ].join(",") + "\n";
+    }
+
+    var jobNo = $("#JobNo").val().replace(/\s+/g, "_");
     var blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     saveAs(blob, jobNo + "_totals.csv");
 
@@ -391,6 +560,7 @@ function resetJob() {
 
     document.getElementById("JobNo").focus();
 }
+
 /* ======================================================
    CSV LOADER — WITH FIELD CLEARING
 ====================================================== */
