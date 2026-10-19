@@ -81,10 +81,6 @@ if (navigator.serviceWorker.controller) {
     font-weight: bold;
   }
 
-  .job-completed-banner.show {
-    display: block;
-  }
-
   .btn-group-vertical {
     gap: 8px;
     display: flex;
@@ -99,7 +95,6 @@ if (navigator.serviceWorker.controller) {
 
         <div class="container">
 
-            <!-- Job Completed Banner -->
             <div id="jobCompletedBanner" class="job-completed-banner">
               ✓ Job Completed! Form is now locked. Clear or start a new job.
             </div>
@@ -125,17 +120,6 @@ if (navigator.serviceWorker.controller) {
                         </div>
                     </div>
 
-                    <!-- NEW JOB TITLE FIELD -->
-                    <div class="row">
-                        <div class="col-25">
-                            <label for="JobTitle">Job Title</label>
-                        </div>
-                        <div class="col-75">
-                            <input type="text" class="form-control" id="JobTitle" placeholder="e.g. Mini Peanut Slab (410kg)">
-                        </div>
-                    </div>
-
-                    <!-- AUTOCOMPLETE INK CODE FIELD WITH EDIT BUTTON -->
                     <div class="row">
                         <div class="col-25">
                             <label for="InkCodeInput">Ink Code</label>
@@ -173,7 +157,6 @@ if (navigator.serviceWorker.controller) {
                         </div>
                     </div>
 
-                    <!-- Clear/New Job -->
                     <div class="row" style="margin-top: 10px;">
                         <div class="col-25"></div>
                         <div class="col-75">
@@ -205,7 +188,6 @@ if (navigator.serviceWorker.controller) {
                         <tr>
                             <th>Date</th>
                             <th>Job Number</th>
-                            <th>Job Title</th>
                             <th>Ink Code</th>
                             <th>Batch Code</th>
                             <th>Weight</th>
