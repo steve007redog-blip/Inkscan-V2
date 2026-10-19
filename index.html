@@ -125,6 +125,16 @@ if (navigator.serviceWorker.controller) {
                         </div>
                     </div>
 
+                    <!-- ⭐ NEW JOB TITLE FIELD -->
+                    <div class="row">
+                        <div class="col-25">
+                            <label for="JobTitle">Job Title</label>
+                        </div>
+                        <div class="col-75">
+                            <input type="text" class="form-control" id="JobTitle" placeholder="e.g. Mini Peanut Slab (410kg)">
+                        </div>
+                    </div>
+
                     <!-- AUTOCOMPLETE INK CODE FIELD WITH EDIT BUTTON -->
                     <div class="row">
                         <div class="col-25">
@@ -196,6 +206,7 @@ if (navigator.serviceWorker.controller) {
                         <tr>
                             <th>Date</th>
                             <th>Job Number</th>
+                            <th>Job Title</th>
                             <th>Ink Code</th>
                             <th>Batch Code</th>
                             <th>Weight</th>
@@ -217,7 +228,7 @@ if (navigator.serviceWorker.controller) {
 </body>
 
 <script src="js/FileSaver.js" defer></script>
-<script src="js/main1.js" defer></script>
+<script src="js/main.js" defer></script>
 <script src="js/table2csv.js" defer></script>
 <script src="js/manup.js" defer></script>
 </html>
