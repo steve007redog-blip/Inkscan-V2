@@ -153,6 +153,7 @@ $("#Weight").on("keydown", function (e) {
                 "scansBody",
                 $("#dateInput").val(),
                 $("#JobNo").val(),
+                $("#JobTitle").val(),
                 inkCode,
                 batch,
                 weight
@@ -171,15 +172,16 @@ $("#Weight").on("keydown", function (e) {
 /* ======================================================
    ADD ROW TO TABLE
 ====================================================== */
-function addRow(tableId, date, job, ink, batch, weight) {
+function addRow(tableId, date, job, jobTitle, ink, batch, weight) {
     var table = document.getElementById(tableId);
     var row = table.insertRow();
 
     row.insertCell(0).innerText = date;
     row.insertCell(1).innerText = job;
-    row.insertCell(2).innerText = ink;
-    row.insertCell(3).innerText = batch;
-    row.insertCell(4).innerText = weight;
+    row.insertCell(2).innerText = jobTitle;
+    row.insertCell(3).innerText = ink;
+    row.insertCell(4).innerText = batch;
+    row.insertCell(5).innerText = weight;
 }
 
 /* ======================================================
@@ -191,7 +193,6 @@ function ClearTable() {
         table.deleteRow(0);
     }
 }
-
 /* ======================================================
    SAFE CSV ESCAPER
 ====================================================== */
@@ -225,7 +226,8 @@ function parseCSVLine(line) {
 
     result.push(current.trim());
     return result;
-}2
+}
+
 /* ======================================================
    SAVE & CONTINUE (INDIVIDUAL ENTRIES CSV)
 ====================================================== */
@@ -242,20 +244,23 @@ $("#btn-save-continue").click(function () {
         return;
     }
 
-    var csv = "Date,Job Number,Ink Code,Batch Code,Weight\n";
+    // New header includes Job Title
+    var csv = "Date,Job Number,Job Title,Ink Code,Batch Code,Weight\n";
 
     rows.each(function () {
         var cols = $(this).find("td");
 
         var date = $(cols[0]).text();
         var job = $(cols[1]).text();
-        var ink = $(cols[2]).text();
-        var batch = $(cols[3]).text().trim();
-        var weight = $(cols[4]).text();
+        var jobTitle = $(cols[2]).text();
+        var ink = $(cols[3]).text();
+        var batch = $(cols[4]).text().trim();
+        var weight = $(cols[5]).text();
 
         csv += [
             escapeCSV(date),
             escapeCSV(job),
+            escapeCSV(jobTitle),
             escapeCSV(ink),
             escapeCSV(batch),
             escapeCSV(weight)
@@ -295,14 +300,16 @@ $("#btn-complete-job").click(function () {
 
         var date = $(cols[0]).text();
         var job = $(cols[1]).text();
-        var ink = $(cols[2]).text();
-        var batch = $(cols[3]).text().trim();
-        var weight = parseFloat($(cols[4]).text());
+        var jobTitle = $(cols[2]).text();
+        var ink = $(cols[3]).text();
+        var batch = $(cols[4]).text().trim();
+        var weight = parseFloat($(cols[5]).text());
 
         if (!totals[ink]) {
             totals[ink] = {
                 date: date,
                 job: job,
+                jobTitle: jobTitle,
                 weight: 0,
                 batches: new Set()
             };
@@ -315,13 +322,191 @@ $("#btn-complete-job").click(function () {
         }
     });
 
-    var csv = "Date,Job Number,Ink Code,Total Weight,Batch Codes Used\n";
+    // New header includes Job Title
+    var csv = "Date,Job Number,Job Title,Ink Code,Total Weight,Batch Codes Used\n";
 
     for (var ink in totals) {
         let batchList = Array.from(totals[ink].batches).join(", ");
         csv += [
             escapeCSV(totals[ink].date),
             escapeCSV(totals[ink].job),
+            escapeCSV(totals[ink].jobTitle),
+            escapeCSV(ink),
+            escapeCSV(totals[ink].weight),
+            escapeCSV(batchList)
+        ].join(",") + "\n";
+    }
+
+    var jobNo = $("#JobNo").val().replace(/\s+/g, "_");
+    var blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    saveAs(blob, jobNo + "_totals.csv");
+
+    isJobCompleted = true;
+    disableForm();
+    showCompletionBanner();
+
+    alert("Job completed! Totals exported. Form is now locked.");
+});
+
+/* ======================================================
+   DISABLE FORM
+====================================================== */
+function disableForm() {
+    document.querySelectorAll("input, button").forEach(el => {
+        if (el.id !== "btn-clear") el.disabled = true;
+    });
+}
+
+/* ======================================================
+   ENABLE FORM
+====================================================== */
+function enableForm() {
+    document.querySelectorAll("input, button").forEach(el => {
+        el.disabled = false;
+    });
+}
+
+/* ======================================================
+   SHOW COMPLETION BANNER
+====================================================== */
+function showCompletionBanner() {
+    const banner = document.getElementById("jobCompletedBanner");
+    if (banner) banner.style.display = "block";
+}
+`"${String(value).replace(/"/g, '""')}"`;
+}
+
+/* ======================================================
+   SAFE CSV PARSER
+====================================================== */
+function parseCSVLine(line) {
+    const result = [];
+    let current = "";
+    let insideQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+
+        if (char === '"' && line[i + 1] === '"') {
+            current += '"';
+            i++;
+        } else if (char === '"') {
+            insideQuotes = !insideQuotes;
+        } else if (char === ',' && !insideQuotes) {
+            result.push(current.trim());
+            current = "";
+        } else {
+            current += char;
+        }
+    }
+
+    result.push(current.trim());
+    return result;
+}
+
+/* ======================================================
+   SAVE & CONTINUE (INDIVIDUAL ENTRIES CSV)
+====================================================== */
+$("#btn-save-continue").click(function () {
+    if (isJobCompleted) {
+        alert("Job is completed. Clear the form or start a new job.");
+        return;
+    }
+
+    var rows = $("#scansBody tr");
+
+    if (rows.length === 0) {
+        alert("No entries to save. Add some ink records first.");
+        return;
+    }
+
+    // New header includes Job Title
+    var csv = "Date,Job Number,Job Title,Ink Code,Batch Code,Weight\n";
+
+    rows.each(function () {
+        var cols = $(this).find("td");
+
+        var date = $(cols[0]).text();
+        var job = $(cols[1]).text();
+        var jobTitle = $(cols[2]).text();
+        var ink = $(cols[3]).text();
+        var batch = $(cols[4]).text().trim();
+        var weight = $(cols[5]).text();
+
+        csv += [
+            escapeCSV(date),
+            escapeCSV(job),
+            escapeCSV(jobTitle),
+            escapeCSV(ink),
+            escapeCSV(batch),
+            escapeCSV(weight)
+        ].join(",") + "\n";
+    });
+
+    var jobNo = $("#JobNo").val().replace(/\s+/g, "_");
+    var blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    saveAs(blob, jobNo + "_entries.csv");
+
+    alert("Saved! You can continue adding more entries or load this CSV later.");
+});
+
+/* ======================================================
+   COMPLETE JOB (TOTALS ONLY)
+====================================================== */
+$("#btn-complete-job").click(function () {
+    if (isJobCompleted) {
+        alert("Job is already completed.");
+        return;
+    }
+
+    var rows = $("#scansBody tr");
+
+    if (rows.length === 0) {
+        alert("No entries to export. Add some ink records first.");
+        return;
+    }
+
+    var confirmFinish = window.confirm("Complete job and export totals only? This will lock the form for new entries.");
+    if (!confirmFinish) return;
+
+    var totals = {};
+
+    rows.each(function () {
+        var cols = $(this).find("td");
+
+        var date = $(cols[0]).text();
+        var job = $(cols[1]).text();
+        var jobTitle = $(cols[2]).text();
+        var ink = $(cols[3]).text();
+        var batch = $(cols[4]).text().trim();
+        var weight = parseFloat($(cols[5]).text());
+
+        if (!totals[ink]) {
+            totals[ink] = {
+                date: date,
+                job: job,
+                jobTitle: jobTitle,
+                weight: 0,
+                batches: new Set()
+            };
+        }
+
+        totals[ink].weight += weight;
+
+        if (batch !== "") {
+            totals[ink].batches.add(batch);
+        }
+    });
+
+    // New header includes Job Title
+    var csv = "Date,Job Number,Job Title,Ink Code,Total Weight,Batch Codes Used\n";
+
+    for (var ink in totals) {
+        let batchList = Array.from(totals[ink].batches).join(", ");
+        csv += [
+            escapeCSV(totals[ink].date),
+            escapeCSV(totals[ink].job),
+            escapeCSV(totals[ink].jobTitle),
             escapeCSV(ink),
             escapeCSV(totals[ink].weight),
             escapeCSV(batchList)
@@ -374,6 +559,7 @@ function resetJob() {
     enableForm();
 
     document.getElementById("JobNo").value = "";
+    document.getElementById("JobTitle").value = "";
     document.getElementById("InkCodeInput").value = "";
     document.getElementById("BatchCode").value = "";
     document.getElementById("Weight").value = "";
@@ -428,29 +614,55 @@ function handleFiles(files) {
 function parseCsvAndLoadRows(csvText) {
     ClearTable();
 
+    // Clear header fields before loading
+    document.getElementById("JobNo").value = "";
+    document.getElementById("JobTitle").value = "";
+
     const lines = csvText.split(/\r?\n/);
     let firstJobNumber = "";
+    let firstJobTitle = "";
 
     for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (line === "") continue;
 
         const parts = parseCSVLine(line);
+
+        // Backwards compatibility:
+        // old files: Date, Job, Ink, Batch, Weight  => length 5
+        // new files: Date, Job, Title, Ink, Batch, Weight => length 6
         if (parts.length < 5) continue;
 
         const date = parts[0];
         const job = parts[1];
-        const ink = parts[2];
-        const batch = parts[3];
-        const weight = parts[4];
+
+        let jobTitle = "";
+        let ink, batch, weight;
+
+        if (parts.length >= 6) {
+            // New format with Job Title
+            jobTitle = parts[2];
+            ink = parts[3];
+            batch = parts[4];
+            weight = parts[5];
+        } else {
+            // Old format without Job Title
+            ink = parts[2];
+            batch = parts[3];
+            weight = parts[4];
+        }
 
         if (!firstJobNumber) firstJobNumber = job;
+        if (!firstJobTitle && jobTitle) firstJobTitle = jobTitle;
 
-        addRow("scansBody", date, job, ink, batch, weight);
+        addRow("scansBody", date, job, jobTitle, ink, batch, weight);
     }
 
     if (firstJobNumber) {
         document.getElementById("JobNo").value = firstJobNumber;
+    }
+    if (firstJobTitle) {
+        document.getElementById("JobTitle").value = firstJobTitle;
     }
 
     alert("CSV loaded successfully!");
